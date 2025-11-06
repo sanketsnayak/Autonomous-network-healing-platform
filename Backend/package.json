@@ -1,0 +1,57 @@
+{
+  "name": "autonomous-network-healing-platform",
+  "version": "1.0.0",
+  "description": "Autonomous Network Healing Platform - Backend API and Services",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "setup": "node setup-dev-environment.js",
+    "test": "node integration-test.js",
+    "test:integration": "node integration-test.js",
+    "lint": "echo \"No linting configured yet\" && exit 0",
+    "health": "curl -s http://localhost:5000/api/health | json_pp || echo 'Server not running'",
+    "metrics": "curl -s http://localhost:5000/api/metrics | json_pp || echo 'Server not running'",
+    "reset-db": "node -e \"require('./setup-dev-environment.js').setupDevelopmentEnvironment()\"",
+    "logs": "tail -f logs/app.log 2>/dev/null || echo 'No log file found'"
+  },
+  "keywords": [
+    "network-management",
+    "autonomous-healing",
+    "network-automation",
+    "monitoring",
+    "remediation",
+    "rca",
+    "incident-management"
+  ],
+  "author": "Network Operations Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.18.2",
+    "morgan": "^1.10.1",
+    "node-cron": "^3.0.2",
+    "ws": "^8.14.2",
+    "node-snmp": "^1.2.0",
+    "netconf": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/autonomous-network-healing-platform.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/autonomous-network-healing-platform/issues"
+  },
+  "homepage": "https://github.com/your-org/autonomous-network-healing-platform#readme"
+}
