@@ -41,9 +41,12 @@ const Layout = ({ children, currentPage = 'dashboard' }) => {
   };
 
   const getHealthStatus = () => {
-    if (!health?.overall_status) return { status: 'unknown', color: 'gray' };
+    // Check both possible status field names
+    const status = health?.overall_status || health?.status;
     
-    const status = health.overall_status.toLowerCase();
+    if (!status) return { status: 'unknown', color: 'gray' };
+    
+    const normalizedStatus = status.toLowerCase();
     const colors = {
       healthy: 'green',
       degraded: 'yellow',
@@ -52,7 +55,7 @@ const Layout = ({ children, currentPage = 'dashboard' }) => {
       unknown: 'gray'
     };
     
-    return { status, color: colors[status] || 'gray' };
+    return { status: normalizedStatus, color: colors[normalizedStatus] || 'gray' };
   };
 
   const healthStatus = getHealthStatus();

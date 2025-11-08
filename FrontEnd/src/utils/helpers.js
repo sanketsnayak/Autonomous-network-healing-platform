@@ -59,6 +59,18 @@ export const getStatusColor = (status) => {
 };
 
 // Severity level formatting
+export const getSeverityColor = (severity) => {
+  const severityColors = {
+    'critical': 'text-red-600 bg-red-100',
+    'major': 'text-orange-600 bg-orange-100',
+    'minor': 'text-yellow-600 bg-yellow-100',
+    'warning': 'text-yellow-600 bg-yellow-100',
+    'info': 'text-blue-600 bg-blue-100',
+  };
+  
+  return severityColors[severity?.toLowerCase()] || 'text-gray-600 bg-gray-100';
+};
+
 export const getSeverityIcon = (severity) => {
   const severityIcons = {
     'critical': '🔴',
@@ -344,6 +356,7 @@ export default {
   formatDate,
   formatRelativeTime,
   getStatusColor,
+  getSeverityColor,
   getSeverityIcon,
   getDeviceIcon,
   formatBytes,

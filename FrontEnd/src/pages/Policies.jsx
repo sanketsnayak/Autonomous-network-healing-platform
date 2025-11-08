@@ -11,29 +11,29 @@ import {
   MagnifyingGlassIcon,
   CogIcon
 } from '@heroicons/react/24/outline';
-import { useApi } from '../hooks/useApi';
-import { formatDateTime } from '../utils/helpers';
+import { usePolicies } from '../hooks/useApi';
+import { formatRelativeTime } from '../utils/helpers';
 
 /**
  * Policies page component for managing automation policies
  * Shows policies for autonomous network healing with CRUD operations
  */
 export default function Policies() {
-  const { data: policies = [], loading, error, refetch } = useApi('/policies');
+  const { policies, loading, error, refetch } = usePolicies();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Filter policies based on status and search term
-  const filteredPolicies = policies.filter(policy => {
+  const filteredPolicies = Array.isArray(policies) ? policies.filter(policy => {
     const matchesFilter = filter === 'all' || 
                          (filter === 'active' && policy.enabled) ||
                          (filter === 'inactive' && !policy.enabled);
     const matchesSearch = policy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          policy.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
-  });
+  }) : [];
 
   // Handle policy toggle
   const handleTogglePolicy = async (policyId, enabled) => {
@@ -140,19 +140,19 @@ export default function Policies() {
           },
           { 
             title: 'Active', 
-            value: policies.filter(p => p.enabled).length, 
+            value: Array.isArray(policies) ? policies.filter(p => p.enabled).length : 0, 
             color: 'green',
             icon: CheckCircleIcon
           },
           { 
             title: 'Inactive', 
-            value: policies.filter(p => !p.enabled).length, 
+            value: Array.isArray(policies) ? policies.filter(p => !p.enabled).length : 0, 
             color: 'red',
             icon: XCircleIcon
           },
           { 
             title: 'Remediation', 
-            value: policies.filter(p => p.type === 'remediation').length, 
+            value: Array.isArray(policies) ? policies.filter(p => p.type === 'remediation').length : 0, 
             color: 'purple',
             icon: CogIcon
           }
@@ -256,11 +256,11 @@ export default function Policies() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Created</label>
-                    <p className="mt-1 text-sm text-gray-900">{formatDateTime(policy.createdAt)}</p>
+                    <p className="mt-1 text-sm text-gray-900">{formatRelativeTime(policy.createdAt)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Last Updated</label>
-                    <p className="mt-1 text-sm text-gray-900">{formatDateTime(policy.updatedAt)}</p>
+                    <p className="mt-1 text-sm text-gray-900">{formatRelativeTime(policy.updatedAt)}</p>
                   </div>
                 </div>
 

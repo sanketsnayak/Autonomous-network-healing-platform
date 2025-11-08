@@ -10,21 +10,21 @@ import {
   EyeIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { useApi } from '../hooks/useApi';
-import { formatDateTime, getStatusColor } from '../utils/helpers';
+import { useActions } from '../hooks/useApi';
+import { formatRelativeTime, getStatusColor } from '../utils/helpers';
 
 /**
  * Actions page component for viewing and managing remediation actions
  * Shows automated healing actions with their status and results
  */
 export default function Actions() {
-  const { data: actions = [], loading, error, refetch } = useApi('/actions');
+  const { actions, loading, error, refetch } = useActions();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAction, setSelectedAction] = useState(null);
 
   // Filter actions based on status and search term
-  const filteredActions = actions.filter(action => {
+  const filteredActions = (actions || []).filter(action => {
     const matchesFilter = filter === 'all' || action.status === filter;
     const matchesSearch = action.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          action.device?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -234,8 +234,8 @@ export default function Actions() {
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Started</label>
                     <p className="mt-1 text-sm text-gray-900">
-                      {action.startTime ? formatDateTime(action.startTime) : 
-                       action.createdAt ? formatDateTime(action.createdAt) : 'N/A'}
+                      {action.startTime ? formatRelativeTime(action.startTime) : 
+                       action.createdAt ? formatRelativeTime(action.createdAt) : 'N/A'}
                     </p>
                   </div>
                   <div>
@@ -403,7 +403,7 @@ export default function Actions() {
                           <div className="flex-1">
                             <p className="text-gray-900">{step.description}</p>
                             <p className="text-gray-500">
-                              {step.timestamp ? formatDateTime(step.timestamp) : 'Pending'}
+                              {step.timestamp ? formatRelativeTime(step.timestamp) : 'Pending'}
                             </p>
                           </div>
                         </div>
@@ -416,16 +416,16 @@ export default function Actions() {
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Timing</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium">Created:</span> {formatDateTime(selectedAction.createdAt)}
+                      <span className="font-medium">Created:</span> {formatRelativeTime(selectedAction.createdAt)}
                     </div>
                     <div>
                       <span className="font-medium">Started:</span> {
-                        selectedAction.startTime ? formatDateTime(selectedAction.startTime) : 'Not started'
+                        selectedAction.startTime ? formatRelativeTime(selectedAction.startTime) : 'Not started'
                       }
                     </div>
                     <div>
                       <span className="font-medium">Completed:</span> {
-                        selectedAction.endTime ? formatDateTime(selectedAction.endTime) : 'In progress'
+                        selectedAction.endTime ? formatRelativeTime(selectedAction.endTime) : 'In progress'
                       }
                     </div>
                     <div>

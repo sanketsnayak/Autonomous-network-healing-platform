@@ -1,0 +1,345 @@
+import React, { useState } from 'react';
+import { 
+  AlertTriangle, 
+  Eye, 
+  CheckCircle,
+  XCircle,
+  Clock,
+  Filter,
+  Search
+} from 'lucide-react';
+import { useAlerts } from '../hooks/useApi';
+import { formatRelativeTime, getStatusColor, getSeverityColor } from '../utils/helpers';
+
+/**
+ * Alerts page component for viewing and managing network alerts
+ * Shows real-time alerts with filtering, search, and action capabilities
+ */
+export default function Alerts() {
+  const { alerts, loading, error, refetch } = useAlerts();
+  const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAlert, setSelectedAlert] = useState(null);
+
+  // Filter alerts based on status and search term
+  const filteredAlerts = alerts.filter(alert => {
+    const matchesFilter = filter === 'all' || alert.status === filter;
+    const matchesSearch = alert.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         alert.device.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  // Get severity icon
+  const getSeverityIcon = (severity) => {
+    switch (severity) {
+      case 'critical':
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      case 'major':
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      case 'minor':
+        return <CheckCircle className="h-5 w-5 text-blue-500" />;
+      default:
+        return <Clock className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  // Get severity icon
+  const getSeverityIcon = (severity) => {
+    switch (severity) {
+      case 'critical':
+        return <XCircleIcon className="h-5 w-5 text-red-500" />;
+      case 'warning':
+        return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
+      case 'info':
+        return <CheckCircleIcon className="h-5 w-5 text-blue-500" />;
+      default:
+        return <ClockIcon className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  // Handle alert acknowledgment
+  const handleAcknowledge = async (alertId) => {
+    try {
+      await fetch(`http://localhost:5000/api/alerts/${alertId}/acknowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      refetch();
+    } catch (error) {
+      console.error('Failed to acknowledge alert:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex">
+            <XCircleIcon className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error loading alerts</h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Network Alerts</h1>
+        <p className="mt-2 text-gray-600">Monitor and manage network alerts and incidents</p>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {[
+          { 
+            title: 'Total Alerts', 
+            value: alerts.length, 
+            color: 'blue',
+            icon: ExclamationTriangleIcon
+          },
+          { 
+            title: 'Critical', 
+            value: alerts.filter(a => a.severity === 'critical').length, 
+            color: 'red',
+            icon: XCircleIcon
+          },
+          { 
+            title: 'Warning', 
+            value: alerts.filter(a => a.severity === 'warning').length, 
+            color: 'yellow',
+            icon: ExclamationTriangleIcon
+          },
+          { 
+            title: 'Open', 
+            value: alerts.filter(a => a.status === 'open').length, 
+            color: 'green',
+            icon: ClockIcon
+          }
+        ].map((stat, index) => (
+          <div key={index} className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className={`flex-shrink-0 p-3 rounded-lg bg-${stat.color}-100`}>
+                <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+                <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters and Search */}
+      <div className="bg-white rounded-lg shadow mb-6 p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Search */}
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Search alerts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Filter */}
+          <div className="relative">
+            <select
+              className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              <option value="all">All Alerts</option>
+              <option value="open">Open</option>
+              <option value="acknowledged">Acknowledged</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Alerts List */}
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Recent Alerts ({filteredAlerts.length})
+          </h3>
+        </div>
+        
+        {filteredAlerts.length === 0 ? (
+          <div className="text-center py-12">
+            <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No alerts</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {filter === 'all' ? 'No alerts found' : `No ${filter} alerts found`}
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-gray-200">
+            {filteredAlerts.map((alert) => (
+              <li key={alert._id} className="px-6 py-4 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    {getSeverityIcon(alert.severity)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {alert.message}
+                        </p>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSeverityColor(alert.severity)}`}>
+                          {alert.severity}
+                        </span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(alert.status)}`}>
+                          {alert.status}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+                        <span>Device: {alert.device}</span>
+                        <span>•</span>
+                        <span>IP: {alert.device_ip}</span>
+                        <span>•</span>
+                        <span>{formatRelativeTime(alert.timestamp || alert.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setSelectedAlert(alert)}
+                      className="text-blue-600 hover:text-blue-500"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                    {alert.status === 'open' && (
+                      <button
+                        onClick={() => handleAcknowledge(alert._id)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Acknowledge
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Alert Detail Modal */}
+      {selectedAlert && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Alert Details</h3>
+                <button
+                  onClick={() => setSelectedAlert(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XCircleIcon className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Message</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedAlert.message}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Device</label>
+                    <p className="mt-1 text-sm text-gray-900">{selectedAlert.device}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Device IP</label>
+                    <p className="mt-1 text-sm text-gray-900">{selectedAlert.device_ip}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Severity</label>
+                    <span className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSeverityColor(selectedAlert.severity)}`}>
+                      {selectedAlert.severity}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <span className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedAlert.status)}`}>
+                      {selectedAlert.status}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Category</label>
+                    <p className="mt-1 text-sm text-gray-900">{selectedAlert.category}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Timestamp</label>
+                  <p className="mt-1 text-sm text-gray-900">{formatRelativeTime(selectedAlert.timestamp || selectedAlert.createdAt)}</p>
+                </div>
+                
+                {selectedAlert.normalized_data && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Additional Data</label>
+                    <pre className="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded">
+                      {JSON.stringify(selectedAlert.normalized_data, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-6 flex justify-end space-x-2">
+                <button
+                  onClick={() => setSelectedAlert(null)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                >
+                  Close
+                </button>
+                {selectedAlert.status === 'open' && (
+                  <button
+                    onClick={() => {
+                      handleAcknowledge(selectedAlert._id);
+                      setSelectedAlert(null);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                  >
+                    Acknowledge
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

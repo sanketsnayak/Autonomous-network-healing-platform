@@ -8,6 +8,11 @@ import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Devices from './pages/Devices';
+import Topology from './pages/Topology';
+import Alerts from './pages/Alerts';
+import Incidents from './pages/Incidents';
+import Actions from './pages/Actions';
+import Policies from './pages/Policies';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -34,40 +39,15 @@ function App() {
       case 'devices':
         return <Devices />;
       case 'topology':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Network Topology</h2>
-            <p className="text-gray-600">Topology visualization coming soon...</p>
-          </div>
-        );
+        return <Topology />;
       case 'alerts':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Alert Management</h2>
-            <p className="text-gray-600">Alert management interface coming soon...</p>
-          </div>
-        );
+        return <Alerts />;
       case 'incidents':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Incident Management</h2>
-            <p className="text-gray-600">Incident management interface coming soon...</p>
-          </div>
-        );
+        return <Incidents />;
       case 'actions':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Remediation Actions</h2>
-            <p className="text-gray-600">Action management interface coming soon...</p>
-          </div>
-        );
+        return <Actions />;
       case 'policies':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Automation Policies</h2>
-            <p className="text-gray-600">Policy management interface coming soon...</p>
-          </div>
-        );
+        return <Policies />;
       default:
         return <Dashboard />;
     }

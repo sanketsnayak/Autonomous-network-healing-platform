@@ -10,19 +10,19 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
-import { useApi } from '../hooks/useApi';
-import { formatDateTime } from '../utils/helpers';
+import { useTopology } from '../hooks/useApi';
+import { formatRelativeTime } from '../utils/helpers';
 
 /**
  * Topology page component for viewing network topology
  * Shows network devices, links, sites, and services with interactive visualization
  */
 export default function Topology() {
-  const { data: topology = [], loading, error } = useApi('/topology');
+  const { topology, loading, error } = useTopology();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Get the first (main) topology
-  const mainTopology = topology.length > 0 ? topology[0] : null;
+  // Get the main topology data
+  const mainTopology = topology || null;
 
   // Get link status color
   const getLinkStatusColor = (status) => {
@@ -209,7 +209,7 @@ export default function Topology() {
                       <div>
                         <dt className="text-sm font-medium text-gray-500">Last Discovery</dt>
                         <dd className="text-sm text-gray-900">
-                          {mainTopology.last_discovery ? formatDateTime(mainTopology.last_discovery) : 'Never'}
+                          {mainTopology.last_discovery ? formatRelativeTime(mainTopology.last_discovery) : 'Never'}
                         </dd>
                       </div>
                       <div>

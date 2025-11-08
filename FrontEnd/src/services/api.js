@@ -59,9 +59,16 @@ const apiRequest = async (endpoint, options = {}) => {
       throw new Error(errorMessage);
     }
     
-    // Return the response object with data property for compatibility
-    const data = await response.json();
-    return { data };
+    // Parse response and handle different response structures
+    const responseData = await response.json();
+    
+    // If the backend returns a structured response with success/data, extract the data
+    if (responseData && typeof responseData === 'object' && 'success' in responseData && 'data' in responseData) {
+      return { data: responseData.data };
+    }
+    
+    // Otherwise, return the response as-is wrapped in data property for compatibility
+    return { data: responseData };
     
   } catch (error) {
     const message = error.message || 'An error occurred';

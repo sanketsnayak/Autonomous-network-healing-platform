@@ -64,10 +64,27 @@ router.get('/', async (req, res) => {
 
     const topologyData = await query.exec();
 
+    // Handle empty topology data
+    if (!topologyData || topologyData.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          topology: [],
+          statistics: {
+            totalDevices: 0,
+            totalConnections: 0,
+            devicesByType: {},
+            devicesByStatus: {},
+            layers: []
+          }
+        }
+      });
+    }
+
     // Filter out topology entries with no matching devices if device filter was applied
     const filteredTopology = topologyData.filter(topo => {
       if (Object.keys(deviceFilter).length === 0) return true;
-      return topo.devices.some(d => d.deviceId !== null);
+      return topo.devices && topo.devices.some(d => d.deviceId !== null);
     });
 
     // Calculate topology statistics
@@ -80,17 +97,29 @@ router.get('/', async (req, res) => {
     };
 
     filteredTopology.forEach(topo => {
-      stats.totalDevices += topo.devices.length;
-      stats.totalConnections += topo.connections.length;
-      stats.layers.add(topo.layer);
+      if (topo.devices && Array.isArray(topo.devices)) {
+        stats.totalDevices += topo.devices.length;
+      }
+      if (topo.connections && Array.isArray(topo.connections)) {
+        stats.totalConnections += topo.connections.length;
+      }
+      if (topo.layer) {
+        stats.layers.add(topo.layer);
+      }
       
-      topo.devices.forEach(device => {
-        if (device.deviceId) {
-          const deviceData = device.deviceId;
-          stats.devicesByType[deviceData.type] = (stats.devicesByType[deviceData.type] || 0) + 1;
-          stats.devicesByStatus[deviceData.status] = (stats.devicesByStatus[deviceData.status] || 0) + 1;
-        }
-      });
+      if (topo.devices && Array.isArray(topo.devices)) {
+        topo.devices.forEach(device => {
+          if (device.deviceId) {
+            const deviceData = device.deviceId;
+            if (deviceData && deviceData.type) {
+              stats.devicesByType[deviceData.type] = (stats.devicesByType[deviceData.type] || 0) + 1;
+            }
+            if (deviceData && deviceData.status) {
+              stats.devicesByStatus[deviceData.status] = (stats.devicesByStatus[deviceData.status] || 0) + 1;
+            }
+          }
+        });
+      }
     });
 
     stats.layers = Array.from(stats.layers);

@@ -9,15 +9,15 @@ import {
   CogIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
-import { useApi } from '../hooks/useApi';
-import { formatDateTime, getStatusColor, getSeverityColor } from '../utils/helpers';
+import { useIncidents } from '../hooks/useApi';
+import { formatDate, getStatusColor, getSeverityColor } from '../utils/helpers';
 
 /**
  * Incidents page component for viewing and managing network incidents
  * Shows incidents with RCA results and remediation actions
  */
 export default function Incidents() {
-  const { data: incidents = [], loading, error, refetch } = useApi('/incidents');
+  const { incidents, loading, error, refetch } = useIncidents();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIncident, setSelectedIncident] = useState(null);
@@ -218,11 +218,11 @@ export default function Incidents() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Created</label>
-                    <p className="mt-1 text-sm text-gray-900">{formatDateTime(incident.createdAt)}</p>
+                    <p className="mt-1 text-sm text-gray-900">{formatDate(incident.createdAt)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Last Updated</label>
-                    <p className="mt-1 text-sm text-gray-900">{formatDateTime(incident.updatedAt)}</p>
+                    <p className="mt-1 text-sm text-gray-900">{formatDate(incident.updatedAt)}</p>
                   </div>
                 </div>
 
@@ -363,7 +363,7 @@ export default function Incidents() {
                           <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                           <div className="flex-1">
                             <p className="text-gray-900">{event.event}</p>
-                            <p className="text-gray-500">{formatDateTime(event.timestamp)}</p>
+                            <p className="text-gray-500">{formatDate(event.timestamp)}</p>
                           </div>
                         </div>
                       ))}

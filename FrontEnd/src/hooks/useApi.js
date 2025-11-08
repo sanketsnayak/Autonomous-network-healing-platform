@@ -46,7 +46,6 @@ export const useApi = (apiCall, deps = []) => {
           return;
         }
         
-        console.error('API call failed:', err);
         setError(err.response?.data?.message || err.message || 'An error occurred');
       } finally {
         if (!cancelled) {
@@ -100,8 +99,16 @@ export const useDevices = (refreshInterval = 30000) => {
 
   const devices = data || [];
   const deviceCount = devices.length || 0;
-  const onlineDevices = Array.isArray(devices) ? devices.filter(d => d.status === 'up').length : 0;
-  const offlineDevices = Array.isArray(devices) ? devices.filter(d => d.status === 'down').length : 0;
+  
+  const onlineDevices = Array.isArray(devices) ? devices.filter(d => {
+    // Handle both uppercase and lowercase status values
+    const status = d.status?.toLowerCase();
+    return status === 'up' || status === 'online';
+  }).length : 0;
+  const offlineDevices = Array.isArray(devices) ? devices.filter(d => {
+    const status = d.status?.toLowerCase();
+    return status === 'down' || status === 'offline';
+  }).length : 0;
 
   return { 
     devices, 
@@ -250,8 +257,10 @@ export const useSystemHealth = (refreshInterval = 15000) => {
     }
   }, [refetch, refreshInterval]);
 
+  const health = data || {};
+
   return { 
-    health: data || {}, 
+    health, 
     loading, 
     error, 
     refetch 

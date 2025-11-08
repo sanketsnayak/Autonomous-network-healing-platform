@@ -43,6 +43,43 @@ const Devices = () => {
   const [sortDirection, setSortDirection] = useState('asc');
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [showAddDevice, setShowAddDevice] = useState(false);
+  
+  // Add Device form state
+  const [newDevice, setNewDevice] = useState({
+    hostname: '',
+    mgmt_ip: '',
+    vendor: '',
+    model: '',
+    device_type: 'router'
+  });
+
+  // Handle adding a new device
+  const handleAddDevice = async (e) => {
+    e.preventDefault();
+    
+    if (!newDevice.hostname || !newDevice.mgmt_ip) {
+      toast.error('Hostname and IP address are required');
+      return;
+    }
+
+    try {
+      await execute(async () => {
+        await deviceApi.create(newDevice);
+        toast.success(`Device ${newDevice.hostname} added successfully`);
+        setShowAddDevice(false);
+        setNewDevice({
+          hostname: '',
+          mgmt_ip: '',
+          vendor: '',
+          model: '',
+          device_type: 'router'
+        });
+        refetch(); // Refresh the devices list
+      });
+    } catch (err) {
+      toast.error('Failed to add device: ' + (err.message || 'Unknown error'));
+    }
+  };
 
   // Filter and sort devices
   let filteredDevices = devices || [];
@@ -441,26 +478,56 @@ const Devices = () => {
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Device</h3>
-              <form className="space-y-4">
+              <form onSubmit={handleAddDevice} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Hostname</label>
                   <input
                     type="text"
+                    value={newDevice.hostname}
+                    onChange={(e) => setNewDevice({ ...newDevice, hostname: e.target.value })}
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter hostname"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">IP Address</label>
                   <input
                     type="text"
+                    value={newDevice.mgmt_ip}
+                    onChange={(e) => setNewDevice({ ...newDevice, mgmt_ip: e.target.value })}
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="192.168.1.1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Vendor</label>
+                  <input
+                    type="text"
+                    value={newDevice.vendor}
+                    onChange={(e) => setNewDevice({ ...newDevice, vendor: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Cisco, Juniper, etc."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Model</label>
+                  <input
+                    type="text"
+                    value={newDevice.model}
+                    onChange={(e) => setNewDevice({ ...newDevice, model: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="ISR4331, EX4200, etc."
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Device Type</label>
-                  <select className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    value={newDevice.device_type}
+                    onChange={(e) => setNewDevice({ ...newDevice, device_type: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="router">Router</option>
                     <option value="switch">Switch</option>
                     <option value="firewall">Firewall</option>
@@ -478,9 +545,10 @@ const Devices = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    disabled={actionLoading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
                   >
-                    Add Device
+                    {actionLoading ? 'Adding...' : 'Add Device'}
                   </button>
                 </div>
               </form>

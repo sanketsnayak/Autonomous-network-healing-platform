@@ -69,7 +69,7 @@ const Dashboard = () => {
   const deviceStatusData = [
     { name: 'Online', value: onlineDevices, color: '#10b981' },
     { name: 'Offline', value: offlineDevices, color: '#ef4444' },
-    { name: 'Degraded', value: devices.filter(d => d.status === 'degraded').length, color: '#f59e0b' },
+    { name: 'Degraded', value: devices.filter(d => d.status?.toLowerCase() === 'degraded').length, color: '#f59e0b' },
   ];
 
   const alertSeverityData = [
@@ -281,25 +281,29 @@ const Dashboard = () => {
             <Zap className="h-5 w-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {health?.components && Object.entries(health.components).map(([name, status]) => (
-              <div key={name} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  {status === 'healthy' ? (
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                  ) : status === 'error' ? (
-                    <XCircle className="h-5 w-5 text-red-500 mr-3" />
-                  ) : (
-                    <Clock className="h-5 w-5 text-yellow-500 mr-3" />
-                  )}
-                  <span className="text-sm font-medium text-gray-900 capitalize">
-                    {name.replace(/([A-Z])/g, ' $1').trim()}
+            {health?.services?.component_status && Object.entries(health.services.component_status).map(([name, componentData]) => {
+              // Extract the status from the component data structure
+              const status = componentData?.running ? 'healthy' : 'error';
+              return (
+                <div key={name} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {status === 'healthy' ? (
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                    ) : status === 'error' ? (
+                      <XCircle className="h-5 w-5 text-red-500 mr-3" />
+                    ) : (
+                      <Clock className="h-5 w-5 text-yellow-500 mr-3" />
+                    )}
+                    <span className="text-sm font-medium text-gray-900 capitalize">
+                      {name.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)}`}>
+                    {status}
                   </span>
                 </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(status)}`}>
-                  {status}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
